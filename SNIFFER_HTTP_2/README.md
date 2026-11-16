@@ -18,18 +18,18 @@ sudo apt install build-essential curl nodejs
 ## Makefile 타겟
 | 명령 | 동작 |
 |---|---|
-| `make` | `gcc -Wall -Wextra -O2 -o http_sniffer main.c http2.c` |
-| `make clean` | `http_sniffer` 삭제 |
+| `make` | `gcc -Wall -Wextra -O2 -o http2_sniffer main.c http2.c` |
+| `make clean` | `http2_sniffer` 삭제 |
 
 ## 실행 방법 (터미널 3개)
 ```bash
 # 터미널 1: 빌드 + 스니퍼 실행 (raw socket 이라 sudo 필요)
-cd sniffer_rev2
+cd SNIFFER_HTTP_2
 make
-sudo ./http_sniffer lo
+sudo ./http2_sniffer lo
 
 # 터미널 2: 테스트 h2c 서버 (포트 8000)
-cd sniffer_rev2
+cd SNIFFER_HTTP_2
 node h2server.js
 
 # 터미널 3: 요청 보내기 (--http2-prior-knowledge 를 붙여야 HTTP/2 로 감)

@@ -18,18 +18,18 @@ sudo apt install build-essential curl python3
 ## Makefile 타겟
 | 명령 | 동작 |
 |---|---|
-| `make` | `gcc -Wall -Wextra -O2 -o http_sniffer main.c http1.c` |
-| `make clean` | `http_sniffer` 삭제 |
+| `make` | `gcc -Wall -Wextra -O2 -o http1_sniffer main.c http1.c` |
+| `make clean` | `http1_sniffer` 삭제 |
 
 ## 실행 방법 (터미널 3개)
 ```bash
 # 터미널 1: 빌드 + 스니퍼 실행 (raw socket 이라 sudo 필요)
-cd sniffer_h1
+cd SNIFFER_HTTP_1.X
 make
-sudo ./http_sniffer lo
+sudo ./http1_sniffer lo
 
 # 터미널 2: 테스트 웹서버 (포트 8000)
-cd sniffer_h1
+cd SNIFFER_HTTP_1.X
 python3 webapp.py
 
 # 터미널 3: 요청 보내기
