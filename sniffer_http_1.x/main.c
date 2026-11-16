@@ -1,8 +1,8 @@
 /*
- * main.c - Raw Socket(AF_PACKET, SOCK_RAW) 기반 HTTP/2 (h2c) 패킷 분석기
+ * main.c - Raw Socket(AF_PACKET, SOCK_RAW) 기반 HTTP/1.x 패킷 분석기
  *
- *   Ethernet -> IPv4 -> TCP(포트 80/8080/8000 고정) -> (TCP 순서 정렬) -> HTTP/2 프레임 출력
- *   버전 판별 없음: 위 포트의 TCP 데이터는 평문 HTTP/2 로 간주한다.
+ *   Ethernet -> IPv4 -> TCP(포트 80/8080/8000 고정) -> (TCP 순서 정렬) -> HTTP/1.x 출력
+ *   버전 판별 없음: 위 포트의 TCP 데이터는 HTTP/1.x 로 간주한다.
  *
  * 빌드: make
  * 실행: sudo ./http_sniffer [인터페이스|any]
@@ -22,7 +22,7 @@
 #include <net/ethernet.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
-#include "http2.h"
+#include "http1.h"
 
 #define BUF_SIZE 65536
 #define MAX_CONN 64
@@ -31,7 +31,6 @@
 typedef struct {
     int      init;
     uint32_t next_seq;     /* 다음에 와야 할 seq -> 중복/재전송 제거 */
-    h2_dir_t h2;           /* 프레임 재조립 버퍼 */
 } dir_t;
 
 typedef struct {
@@ -183,13 +182,13 @@ static void handle_packet(const unsigned char *buf, int len, const struct sockad
     if (diff < 0) { payload += -diff; plen += diff; seq = ds->next_seq; }   /* 일부 겹침 */
     if (diff > 0) {                                                         /* 누락 */
         printf("  [!] TCP gap %d bytes (packet loss / capture started mid-stream)\n", diff);
-        h2_reset(&ds->h2);
     }
     ds->next_seq = seq + plen;
 
-    /* HTTP/2 고정: 방향별 버퍼에 넣고 완성된 프레임을 출력 */
+    /* HTTP/1.x 고정: 시작줄로 시작하는 세그먼트만 출력 (본문 이어지는 세그먼트는 생략) */
+    if (!looks_like_http1(payload, plen)) return;
     print_summary(sll, eth, ip, ihl, tcp, doff, plen, len);
-    h2_feed(&ds->h2, payload, plen, dir);
+    parse_http1(payload, plen);
     fflush(stdout);
 }
 
@@ -214,7 +213,7 @@ int main(int argc, char *argv[])
     sigaction(SIGINT, &sa, NULL);
     sigaction(SIGTERM, &sa, NULL);
 
-    printf("HTTP/2 sniffer started (if=%s, ports=80,8080,8000). Ctrl+C to stop.\n",
+    printf("HTTP/1.x sniffer started (if=%s, ports=80,8080,8000). Ctrl+C to stop.\n",
            ifname ? ifname : "any");
 
     unsigned char *buf = malloc(BUF_SIZE);

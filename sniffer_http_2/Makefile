@@ -1,10 +1,10 @@
 CC     = gcc
 CFLAGS = -Wall -Wextra -O2
 
-SRC = main.c http1.c
+SRC = main.c http2.c
 
-# make : HTTP/1.x 분석기 (포트 80/8080/8000 고정)
-http_sniffer: $(SRC) http1.h
+# make : HTTP/2(h2c) 프레임 분석기 (포트 80/8080/8000 고정)
+http_sniffer: $(SRC) http2.h
 	$(CC) $(CFLAGS) -o $@ $(SRC)
 
 clean:
